@@ -10,6 +10,7 @@
 #include "Game.h"
 #include "SimTowerLoader.h"
 #include "TimeWindowWatch.h"
+#include "OpenGL.h"
 
 using namespace OT;
 using namespace std;
@@ -46,11 +47,13 @@ Application::Application(int argc, char * argv[])
 			}
 		}
 	} while(!r_getpwd);
+	std::cout << "pwd = " << pwd << '\n';
 	path = Path(pwd);
 	delete pwd;
-#ifdef __APPLE__
-	path = Path("../MacOS").down(path.name());
-#endif
+	path = Path(argv[0]).up();
+// #ifdef __APPLE__
+// 	path = Path("../MacOS").down(path.name());
+// #endif
 
 	//Special debug defaults.
 #ifdef BUILD_DEBUG
@@ -135,7 +138,9 @@ void Application::init()
 	videoMode.height       = 768;
 	videoMode.bitsPerPixel = 32;
 
+
 	window.create(videoMode, "OpenSkyscraper SFML");
+	window.setVerticalSyncEnabled(true);
 
 	if (!gui.init(&window)) {
 		LOG(ERROR, "unable to initialize gui");
@@ -252,6 +257,9 @@ void Application::loop()
 		}
 
 		//Make the current state do its work.
+		glClearColor(0,0,1,0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		window.resetGLStates();
 		if (!states.empty()) {
 			states.top()->advance(dt);
 			states.top()->gui.draw();
@@ -275,6 +283,16 @@ void Application::loop()
 		bg.setPosition(sf::Vector2f(r.left, r.top));
 		window.draw(bg);
 		window.draw(rateIndicator);
+
+		sf::Vector2i mp = sf::Mouse::getPosition(window);
+		glColor3f(1,0,0);
+		glBegin(GL_LINES);
+		glVertex2f(mp.x-10,mp.y);
+		glVertex2f(mp.x+10,mp.y);
+		glVertex2f(mp.x,mp.y-10);
+		glVertex2f(mp.x,mp.y+10);
+		glEnd();
+		glColor3f(1,1,1);
 
 		//Swap buffers.
 		window.display();
