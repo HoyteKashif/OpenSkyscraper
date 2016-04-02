@@ -1,3 +1,4 @@
+/* Copyright (c) 2012-2015 Fabian Schuiki */
 #include <cassert>
 #include <string>
 #include "../Game.h"
@@ -20,9 +21,14 @@ Item::~Item()
 void Item::setPosition(int2 p)
 {
 	if (position != p) {
-		position = p;
-		SetPosition(p.x*8, -p.y*36);
+		position.x = p.x/**8*/;
+		position.y = p.y/**36*/;
 	}
+}
+
+int2 Item::getPosition()
+{
+	return position;
 }
 
 void Item::addSprite(Sprite * sprite)
@@ -37,21 +43,26 @@ void Item::removeSprite(Sprite * sprite)
 	sprites.erase(sprite);
 }
 
-void Item::Render(sf::RenderTarget & target) const
+void Item::draw(sf::RenderTarget & target, sf::RenderStates states) const
+{
+	render(target);
+}
+
+void Item::render(sf::RenderTarget & target) const
 {
 	for (SpriteSet::iterator s = sprites.begin(); s != sprites.end(); s++) {
 		game->drawnSprites++;
-		target.Draw(**s);
+		target.draw(**s);
 	}
-	
+
 	if (!canHaulPeople() && position.y != 0 && prototype->icon != 1 && lobbyRoute.empty()) {
 		Sprite noroute;
 		noroute.SetImage(app->bitmaps["noroute.png"]);
-		sf::Vector2f size = noroute.GetSize();
-		noroute.SetCenter(size.x/2, size.y/2);
-		size = GetSize();
-		noroute.SetPosition(size.x/2, -size.y/2);
-		target.Draw(noroute);
+		sf::Vector2u size = noroute.getTexture()->getSize();
+		noroute.setOrigin(size.x/2, size.y/2);
+		size = getSize();
+		noroute.setPosition(size.x/2, -size.y/2);
+		target.draw(noroute);
 	}
 }
 
@@ -84,8 +95,8 @@ void Item::removePerson(Person * p)
 
 rectd Item::getMouseRegion()
 {
-	sf::Vector2f p = GetPosition();
-	sf::Vector2f s = GetSize();
+	int2 p = getPosition();
+	sf::Vector2u s = getSize();
 	return rectd(p.x, p.y - s.y + 12, s.x, s.y - 12);
 }
 
