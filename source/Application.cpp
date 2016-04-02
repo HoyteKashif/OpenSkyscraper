@@ -1,3 +1,4 @@
+/* Copyright (c) 2012-2015 Fabian Schuiki */
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
@@ -262,11 +263,14 @@ void Application::loop()
 		window.resetGLStates();
 		if (!states.empty()) {
 			states.top()->advance(dt);
+			window.resetGLStates();
+			glEnable(GL_TEXTURE_2D);
 			states.top()->gui.draw();
 		}
 		rootGUI->draw();
 
-		//Draw the debugging overlays.
+		window.resetGLStates();
+		// Draw the debugging overlays.
 		char dbg[1024];
 		snprintf(dbg, 32, "%.0fHz [%.0f..%.0f]", 1.0/rateDamped, 1.0/dt_max, 1.0/dt_min);
 		if (!states.empty()) {
@@ -277,7 +281,6 @@ void Application::loop()
 
 		window.setView(window.getDefaultView());
 		sf::FloatRect r = rateIndicator.getLocalBounds();
-		//sf::Shape bg = sf::RectangleShape(r.left, r.top, (r.left + r.width), (r.top + r.height), sf::Color(0, 0, 0, 0.25*255));
 		sf::RectangleShape bg = sf::RectangleShape(sf::Vector2f(r.width, r.height));
 		bg.setFillColor(sf::Color(0, 0, 0, 0.25*255));
 		bg.setPosition(sf::Vector2f(r.left, r.top));
